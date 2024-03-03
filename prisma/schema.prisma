@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserTypes {
+  USER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String
+  name     String
+  password String
+
+  gender            Gender
+  dateOfBirth       DateTime
+  phone             String?
+  posts             Post[]
+  type              UserTypes
+  otp               Int
+  otpExpiryTime     DateTime?
+  avatar            String?      @default("https://us.123rf.com/450wm/pavelstasevich/pavelstasevich1811/pavelstasevich181101027/112815900-no-image-available-icon-flat-vector.jpg?ver=6")
+  avatarPublicId    String?
+  verified          Boolean      @default(false)
+  verificationCode  String       @default(uuid())
+  passwordResetCode String?
+  likes             Like[]
+  comments          Comment[]
+  followedBy        Follow[]     @relation("following")
+  following         Follow[]     @relation("follower")
+  shares            SharedPost[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @default(now())
+}
+
+model Post {
+  id            Int          @id @default(autoincrement())
+  content       String?
+  image         String?
+  imagePublicId String?
+  location      String?
+  link          String?
+  published     Boolean      @default(false)
+  author        User         @relation(fields: [authorId], references: [id])
+  authorId      Int
+  likes         Like[]
+  comments      Comment[]
+  shares        SharedPost[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now())
+}
+
+model Like {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@id([userId, postId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Follow {
+  followed    User @relation("follower", fields: [followedId], references: [id])
+  followedId  Int
+  following   User @relation("following", fields: [followingId], references: [id])
+  followingId Int
+
+  @@id([followedId, followingId])
+}
+
+model SharedPost {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@id([userId, postId])
+}

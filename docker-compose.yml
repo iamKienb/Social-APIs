@@ -1,0 +1,51 @@
+version: "3.8"
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE_NAME}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    command: ["redis-server", "--tls", "--port", "34670", "--tls-cert-file", "/etc/ssl/cert.pem", "--tls-key-file", "/etc/ssl/key.pem"]
+    environment:
+      - REDIS_PASSWORD=67ea324d157a4215b88472877a111267
+    volumes: 
+      - cache:/data
+
+  node-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node-app
+    restart: always
+    environment:
+      DATABASE_URL: mysql://${DB_USERNAME}:${DB_PASSWORD}@mysql:${DB_PORT}/${DB_DATABASE_NAME}
+      REDIS_URL: rediss://default:67ea324d157a4215b88472877a111267@apn1-sought-sawfly-34670.upstash.io:34670
+      JWT_SECRET: JWT_SECRET
+      port: 8080
+      JWT_ACCESS_SECRET_KEY: "JWT_ACCESS_SECRET_KEY"
+      JWT_REFRESH_SECRET_KEY: "JWT_REFRESH_SECRET_KEY"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/docker/usr/src/app
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  mysql_data:
+  cache:
+  
