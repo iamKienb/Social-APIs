@@ -34,7 +34,7 @@ const loginUser = async (req:Request, res:Response, next:NextFunction) => {
             httpOnly: true,
         })
 
-        return res.status(201).json(data.access_token)
+        return res.status(201).json(data)
     }catch(err){
         next(err);
     }

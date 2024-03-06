@@ -35,8 +35,6 @@ services:
       port: 8080
       JWT_ACCESS_SECRET_KEY: "JWT_ACCESS_SECRET_KEY"
       JWT_REFRESH_SECRET_KEY: "JWT_REFRESH_SECRET_KEY"
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     ports:
       - "8080:8080"
     volumes:
